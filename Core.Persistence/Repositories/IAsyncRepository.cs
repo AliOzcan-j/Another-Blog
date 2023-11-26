@@ -7,7 +7,15 @@ namespace Core.Persistence.Repositories;
 public interface IAsyncRepository<TEntity, TEntityIdType> : IQuery<TEntity>
     where TEntity : Entity<TEntityIdType>
 {
-    Task<TEntity?> GetAsync
+    Task<TEntity?> GetFirstAsync
+        (
+            Expression<Func<TEntity, bool>>? filter = null,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default
+        );
+    Task<TEntity?> GetSingleAsync
         (
             Expression<Func<TEntity, bool>>? filter = null,
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,

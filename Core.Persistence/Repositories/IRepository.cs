@@ -7,7 +7,14 @@ namespace Core.Persistence.Repositories;
 public interface IRepository<TEntity, TEntityIdType> : IQuery<TEntity>
     where TEntity : Entity<TEntityIdType>
 {
-    TEntity? Get
+    TEntity? GetFirst
+        (
+            Expression<Func<TEntity, bool>>? filter = null,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
+            bool withDeleted = false,
+            bool enableTracking = true
+        );
+    TEntity? GetSingle
         (
             Expression<Func<TEntity, bool>>? filter = null,
             Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
