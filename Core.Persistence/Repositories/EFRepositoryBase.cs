@@ -16,8 +16,6 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
 {
     protected readonly TContext Context = context;
 
-    public IQueryable<TEntity> Query() => Context.Set<TEntity>();
-
     #region Async
     public async Task<TEntity> AddAsync(TEntity entity)
     {
@@ -64,37 +62,40 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entities;
     }
 
-    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+    public async Task<TEntity?> GetFirstAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
     {
-        IQueryable<TEntity> queryable = Query();
-
-        if (!enableTracking)
-            queryable = queryable.AsNoTracking();
-        if (withDeleted)
-            queryable = queryable.IgnoreQueryFilters();
-        if (include != null)
-            queryable = include(queryable);
-        if (filter != null)
-            queryable = queryable.Where(filter);
-
+        IQueryable<TEntity> queryable = Query
+                                        (
+                                            filter: filter, 
+                                            include: include, 
+                                            withDeleted: withDeleted, 
+                                            enableTracking: enableTracking
+                                        );
         return await queryable.FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<TEntity?> GetSingleAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+    {
+        IQueryable<TEntity> queryable = Query
+                                        (
+                                            filter: filter,
+                                            include: include,
+                                            withDeleted: withDeleted,
+                                            enableTracking: enableTracking
+                                        );
+        return await queryable.SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task<Paginate<TEntity>> GetListAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
     {
-        IQueryable<TEntity> queryable = Query();
-
-        if (filter != null)
-            queryable = queryable.Where(filter);
-        if (include != null)
-            queryable = include(queryable);
-        if (!enableTracking)
-            queryable = queryable.AsNoTracking();
-        if (withDeleted)
-            queryable = queryable.IgnoreQueryFilters();
-        if (orderBy != null)
-            return await orderBy(queryable).PaginateAsync(index, size, cancellationToken);
-
+        IQueryable<TEntity> queryable = Query
+                                        (
+                                            filter,
+                                            include, 
+                                            orderBy, 
+                                            withDeleted, 
+                                            enableTracking
+                                        );
         return await queryable.PaginateAsync(index, size, cancellationToken);
     }
 
@@ -229,20 +230,28 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entities;
     }
 
-    public TEntity? Get(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true)
+    public TEntity? GetFirst(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true)
     {
-        IQueryable<TEntity> queryable = Query();
-
-        if (!enableTracking)
-            queryable = queryable.AsNoTracking();
-        if (withDeleted)
-            queryable = queryable.IgnoreQueryFilters();
-        if (include != null)
-            queryable = include(queryable);
-        if (filter != null)
-            queryable = queryable.Where(filter);
-
+        IQueryable<TEntity> queryable = Query
+                                        (
+                                            filter: filter,
+                                            include: include,
+                                            withDeleted: withDeleted,
+                                            enableTracking: enableTracking
+                                        );
         return queryable.FirstOrDefault();
+    }
+    
+    public TEntity? GetSingle(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true)
+    {
+        IQueryable<TEntity> queryable = Query
+                                        (
+                                            filter: filter,
+                                            include: include,
+                                            withDeleted: withDeleted,
+                                            enableTracking: enableTracking
+                                        );
+        return queryable.SingleOrDefault();
     }
 
     public Paginate<TEntity> GetList(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true)
@@ -348,6 +357,23 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
     }
     #endregion
 
+    public IQueryable<TEntity> Query(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, bool withDeleted = false, bool enableTracking = true) 
+    {
+        IQueryable<TEntity> queryable = Context.Set<TEntity>();
+
+        if (filter != null)
+            queryable = queryable.Where(filter);
+        if (include != null)
+            queryable = include(queryable);
+        if (!enableTracking)
+            queryable = queryable.AsNoTracking();
+        if (withDeleted)
+            queryable = queryable.IgnoreQueryFilters();
+        if (orderBy != null)
+            queryable = orderBy(queryable);
+
+        return queryable;
+    }
     protected void CheckHasEntityHasOneToOneRelation(TEntity entity)
     {
         bool hasEntityHaveOneToOneRelation =
