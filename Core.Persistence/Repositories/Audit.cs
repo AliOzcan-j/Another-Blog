@@ -6,7 +6,7 @@ public class Audit<TId>
     public TId CreatedUserId { get; set; }
     public DateTime? UpdatedDate { get; set; }
     public TId? UpdatedUserId { get; set; }
-    public DateTime? DeletedTime { get; set; }
+    public DateTime? DeletedDate { get; set; }
     public TId? DeletedUserId { get; set; }
 
     public Audit()
