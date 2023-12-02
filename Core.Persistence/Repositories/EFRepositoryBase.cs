@@ -364,10 +364,13 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
 
     private async Task setEntityAsSoftDeletedAsync(TEntity entity)
     {
+        //given entity is already flagged as deleted
         if (entity.DeletedDate.HasValue)
             return;
         entity.DeletedDate = DateTime.UtcNow;
 
+        //gets only the principle navigation properties
+        //with cascade on delete behaviour of given entity
         var navigations = Context
             .Entry(entity)
             .Metadata.GetNavigations()
@@ -375,11 +378,12 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
             .ToList();
         foreach (INavigation? navigation in navigations)
         {
+            //checks if this navigation property is owned by another entity
             if (navigation.TargetEntityType.IsOwned())
                 continue;
             if (navigation.PropertyInfo == null)
                 continue;
-
+ 
             object? navValue = navigation.PropertyInfo.GetValue(entity);
             if (navigation.IsCollection)
             {
@@ -579,7 +583,7 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
                                         );
         return queryable.FirstOrDefault();
     }
-    
+
     /// <summary>
     ///     Returns the only element of a sequence, or a default value if the sequence is empty; 
     ///     this method throws an exception if there is more than one element in the sequence.
@@ -617,7 +621,7 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
                                         );
         return queryable.SingleOrDefault();
     }
-
+    
     /// <summary>
     ///     Creates a <see cref="Paginate{T}"/> from an <see cref="IQueryable{T}" /> by enumerating it
     ///     asynchronously.
