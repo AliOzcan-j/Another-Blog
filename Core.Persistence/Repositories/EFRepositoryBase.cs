@@ -414,6 +414,19 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
     #endregion
 
     #region Sync
+    /// <summary>
+    ///     Performs <see cref="EntityFrameworkCore"/> operations to <b>Add</b> 
+    ///     an <paramref name="entity"/> to connected database while also assigning the create date of the record
+    /// </summary>
+    /// 
+    /// <param name="entity">
+    ///     Represents the entity with the identity type of <see cref="TEntityIdType"/> 
+    ///     on which the operation will be performed.
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The entity on which the operation was performed.
+    /// </returns>
     public TEntity Add(TEntity entity)
     {
         entity.CreatedDate = DateTime.Now;
@@ -422,6 +435,19 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entity;
     }
 
+    /// <summary>
+    ///     Performs <see cref="EntityFrameworkCore"/> operations to <b>Add</b> a list of 
+    ///     <paramref name="entities"/> to connected database while also assigning the create date of the record
+    /// </summary>
+    /// 
+    /// <param name="entities">
+    ///     Represents the list of entities with the identity type of <see cref="TEntityIdType"/> 
+    ///     on which the operation will be performed.
+    /// </param>
+    ///     
+    /// <returns>
+    ///     The list of entities on which the operation was performed.
+    /// </returns>
     public ICollection<TEntity> AddRange(ICollection<TEntity> entities)
     {
         foreach (var entity in entities)
@@ -431,6 +457,28 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entities;
     }
 
+    /// <summary>
+    ///     Determines whether a sequence contains any elements. 
+    ///     Within the method, it can accept parameters to modify the query.
+    /// </summary>
+    /// 
+    /// <param name="filter">
+    ///     Represents the linq query which will modify the default query
+    /// </param>
+    /// 
+    /// <param name="withDeleted">
+    ///     Represents the boolean flag which will determine whether to fetch soft deleted records
+    /// </param>
+    /// 
+    /// <param name="enableTracking">
+    ///     Represents the boolean flag which will determine whether to let EF Core to 
+    ///     track the entity of the current context
+    /// </param>
+    /// 
+    /// <returns>
+    ///     <see langword="true"/> if the source sequence contains 
+    ///     any elements; otherwise, <see langword="false"/>
+    /// </returns>
     public bool? Any(Expression<Func<TEntity, bool>>? filter = null, bool withDeleted = false, bool enableTracking = true)
     {
         IQueryable<TEntity> queryable = Query();
@@ -445,6 +493,23 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return queryable.Any();
     }
 
+    /// <summary>
+    ///     Performs <see cref="EntityFrameworkCore"/> operations to <b>Delete</b> 
+    ///     an <paramref name="entity"/> from connected database 
+    ///     This method also calls methods to determine if the entity is valid for deleting.
+    /// </summary>
+    /// 
+    /// <param name="entity">
+    ///     Represents the entity with the identity type of <see cref="TEntityIdType"/> 
+    ///     on which the operation will be performed.
+    /// </param>
+    /// <param name="permanent">
+    ///     Represents the boolean flag which will be used to determine whether to delete the record permanently
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The entity on which the operation was performed.
+    /// </returns>
     public TEntity Delete(TEntity entity, bool permanent = false)
     {
         SetEntityAsDeleted(entity, permanent);
@@ -452,6 +517,23 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entity;
     }
 
+    /// <summary>
+    ///     Performs <see cref="EntityFrameworkCore"/> operations to <b>Delete</b> 
+    ///     a list of <paramref name="entities"/> from connected database 
+    ///     This method also calls methods to determine if the entities are valid for deleting.
+    /// </summary>
+    /// 
+    /// <param name="entities">
+    ///     Represents the list of entity with the identity type of <see cref="TEntityIdType"/> 
+    ///     on which the operation will be performed.
+    /// </param>
+    /// <param name="permanent">
+    ///     Represents the boolean flag which will be used to determine whether to delete the record permanently
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The list of entity on which the operation was performed.
+    /// </returns>
     public ICollection<TEntity> DeleteRange(ICollection<TEntity> entities, bool permanent = false)
     {
         SetEntityAsDeleted(entities, permanent);
@@ -459,6 +541,33 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entities;
     }
 
+    /// <summary>
+    ///     Returns the first element of a sequence, 
+    ///     or a default value if the sequence contains no element
+    ///     Within the method, it can accept parameters to modify the query.
+    /// </summary>
+    /// 
+    /// <param name="filter">
+    ///     Represents the linq query which will modify the default query
+    /// </param>
+    /// 
+    /// <param name="include">
+    ///     Represents the linq query which will modify the query to include records of given related entities.
+    /// </param>
+    /// 
+    /// <param name="withDeleted">
+    ///     Represents the boolean flag which will determine whether to fetch soft deleted records
+    /// </param>
+    /// 
+    /// <param name="enableTracking">
+    ///     Represents the boolean flag which will determine whether to let EF Core to 
+    ///     track the entity of the current context
+    /// </param>
+    /// 
+    /// <returns>
+    ///     <see langword="default"/> ( <typeparamref name="TEntity"/> ) if
+    ///     the source query result is <see langword="null"/>; otherwise, the first element in sequence.
+    /// </returns>
     public TEntity? GetFirst(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true)
     {
         IQueryable<TEntity> queryable = Query
@@ -471,6 +580,32 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return queryable.FirstOrDefault();
     }
     
+    /// <summary>
+    ///     Returns the only element of a sequence, or a default value if the sequence is empty; 
+    ///     this method throws an exception if there is more than one element in the sequence.
+    /// </summary>
+    /// 
+    /// <param name="filter">
+    ///     Represents the linq query which will modify the default query
+    /// </param>
+    /// 
+    /// <param name="include">
+    ///     Represents the linq query which will modify the query to include records of given related entities.
+    /// </param>
+    /// 
+    /// <param name="withDeleted">
+    ///     Represents the boolean flag which will determine whether to fetch soft deleted records
+    /// </param>
+    /// 
+    /// <param name="enableTracking">
+    ///     Represents the boolean flag which will determine whether to let EF Core to 
+    ///     track the entity of the current context
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The single element of the input sequence, or <see langword="default"/> 
+    ///     ( <typeparamref name="TEntity"/> ) if the sequence contains no elements.
+    /// </returns>
     public TEntity? GetSingle(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool withDeleted = false, bool enableTracking = true)
     {
         IQueryable<TEntity> queryable = Query
@@ -483,6 +618,44 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return queryable.SingleOrDefault();
     }
 
+    /// <summary>
+    ///     Creates a <see cref="Paginate{T}"/> from an <see cref="IQueryable{T}" /> by enumerating it
+    ///     asynchronously.
+    /// </summary>
+    /// 
+    /// <param name="filter">
+    ///     Represents the linq query which will modify the default query
+    /// </param>
+    /// 
+    /// <param name="include">
+    ///     Represents the linq query which will modify the query to include records of given related entities.
+    /// </param>
+    /// 
+    /// <param name="orderBy">
+    ///     Represents the linq query which will modify the query to sort the sequence with given key.
+    /// </param>
+    /// 
+    /// <param name="index">
+    ///     Represents the startin index which will be fetched data from paginated list
+    /// </param>
+    /// 
+    /// <param name="size">
+    ///     Represents the maximum number of data which will be fetched from paginated list
+    /// </param>
+    /// 
+    /// <param name="withDeleted">
+    ///     Represents the boolean flag which will determine whether to fetch soft deleted records
+    /// </param>
+    /// 
+    /// <param name="enableTracking">
+    ///     Represents the boolean flag which will determine whether to let EF Core to 
+    ///     track the entity of the current context
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The list of paginated items of <typeparamref name="TEntity"/> 
+    ///     that contains elements from the input sequence.
+    /// </returns>
     public Paginate<TEntity> GetList(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true)
     {
         IQueryable<TEntity> queryable = Query();
@@ -501,6 +674,20 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return queryable.Paginate(index, size);
     }
 
+    /// <summary>
+    ///     Performs <see cref="EntityFrameworkCore"/> operations to <b>Update</b> 
+    ///     an <paramref name="entity"/> on connected database while also assigning the update date of the record.
+    ///     Update operation itself is not asynchronous, but the writing changes process is asynchronous.
+    /// </summary>
+    /// 
+    /// <param name="entity">
+    ///     Represents the entity with the identity type of <see cref="TEntityIdType"/> 
+    ///     on which the operation will be performed.
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The entity on which the operation was performed.
+    /// </returns>
     public TEntity Update(TEntity entity)
     {
         entity.UpdatedDate = DateTime.UtcNow;
@@ -509,6 +696,20 @@ public class EFRepositoryBase<TEntity, TEntityIdType, TContext>(TContext context
         return entity;
     }
 
+    /// <summary>
+    ///     Performs <see cref="EntityFrameworkCore"/> operations to <b>Update</b> 
+    ///     a list of <paramref name="entities"/> on connected database while also assigning the update date of the record.
+    ///     Update operation itself is not asynchronous, but the writing changes process is asynchronous.
+    /// </summary>
+    /// 
+    /// <param name="entities">
+    ///     Represents the list of entities with the identity type of <see cref="TEntityIdType"/> 
+    ///     on which the operation will be performed.
+    /// </param>
+    /// 
+    /// <returns>
+    ///     The list of entities on which the operation was performed.
+    /// </returns>
     public ICollection<TEntity> UpdateRange(ICollection<TEntity> entities)
     {
         foreach (var entity in entities)
