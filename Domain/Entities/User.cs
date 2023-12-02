@@ -6,7 +6,7 @@ public class User : Entity<Guid>
 {
     public string Name { get; set; }
     public string Email { get; set; }
-    public string Platform { get; set; }
+    public string? Platform { get; set; }
 
     public User()
     {
